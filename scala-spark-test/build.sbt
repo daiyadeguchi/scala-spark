@@ -8,8 +8,5 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("com.daiyadeguchi")
   )
 
-val sparkVersion = "3.5.0"
-libraryDependencies ++= Seq(
-  "org.apache.spark" %% "spark-core" % sparkVersion,
-  "org.apache.spark" %% "spark-sql" % sparkVersion
-)
+libraryDependencies += "org.apache.spark" %% "spark-core" % "3.5.0"
+libraryDependencies += "org.apache.spark" %% "spark-sql" % "3.5.0" % "provided"

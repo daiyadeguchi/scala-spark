@@ -34,13 +34,17 @@ object Main {
 
     df.select(col("Date"), $"Open", df("Close")).show()
     */
+
     val column = df("Open")
-    val newColumn = column + (2.0)
-    val columnString = column.cast(StringType)
+    // as() changes the name of the column for better understandability
+    val newColumn = (column + (2.0)).as("OpenIncreasedBy2")
+    val columnString = (column.cast(StringType)).as("OpenAsString")
 
     df.select(column, newColumn, columnString)
       .filter(newColumn > 2.0)
       .filter(newColumn > column)
+      // == for object equality, === for value equality
+      //.filter(newColumn === column)
       .show()
   }
 }

@@ -33,7 +33,6 @@ object Main {
     $"Date"
 
     df.select(col("Date"), $"Open", df("Close")).show()
-    */
 
     val column = df("Open")
     // as() changes the name of the column for better understandability
@@ -64,5 +63,29 @@ object Main {
     // need to create the view to use it in sql
     df.createTempView("df")
     spark.sql("select * from df").show()
+    */
+
+    // Rename each column with camelcase
+    val renameColumns = List(
+      col("Date").as("date"),
+      col("Open").as("open"),
+      col("High").as("high"),
+      col("Low").as("low"),
+      col("Close").as("close"),
+      col("Adj Close").as("adjClose"),
+      col("Volume").as("volume")
+    )
+
+    // _* -> syntax to make list to varargs
+    // withColumn creates a new column with the second parameter
+    // The assignment: add a column diff bw open and close
+    //                 filter to day when the close price was more than 10% higher than the open price
+    val stockData = df.select(renameColumns: _*)
+      .withColumn("diff", col("close") - col("open"))
+      .filter(col("close") > col("open") * 1.1)
+    stockData.show()
+
+    // lowercase
+    // df.select(df.columns.map(c => col(c).as(c.toLowerCase())): _*).show()
   }
 }

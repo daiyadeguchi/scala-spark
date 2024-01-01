@@ -1,8 +1,8 @@
 package com.daiyadeguchi
 
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{col, lit}
 import org.apache.spark.sql.types.StringType
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession, functions}
 
 // Took me a few minutes running main
 // The reason was I needed to add "Include dependencies with provided scope" option to run config
@@ -40,11 +40,15 @@ object Main {
     val newColumn = (column + (2.0)).as("OpenIncreasedBy2")
     val columnString = (column.cast(StringType)).as("OpenAsString")
 
-    df.select(column, newColumn, columnString)
+    val newColumnString = functions.concat(columnString, lit("Hello world")).as("OpenAsStringWithConcat")
+
+    df.select(column, newColumn, columnString, newColumnString)
       .filter(newColumn > 2.0)
       .filter(newColumn > column)
       // == for object equality, === for value equality
       //.filter(newColumn === column)
-      .show()
+      .show(truncate=false)
+
+
   }
 }

@@ -1,6 +1,6 @@
 package com.daiyadeguchi
 
-import org.apache.spark.sql.functions.{col, lit}
+import org.apache.spark.sql.functions.{col, current_timestamp, expr, lit}
 import org.apache.spark.sql.types.StringType
 import org.apache.spark.sql.{DataFrame, SparkSession, functions}
 
@@ -49,6 +49,20 @@ object Main {
       //.filter(newColumn === column)
       .show(truncate=false)
 
+    // Compile time safety
+    // Not recommended because you could typo
+    val timestampFromExpression = expr("cast(current_timestamp() as string) as timestampExpression")
+    // recommended because no typo
+    val timestampFromFunction = current_timestamp().cast(StringType).as("timestampFunction")
 
+    df.select(timestampFromExpression, timestampFromFunction).show()
+
+    // selectExpr directly
+    df.selectExpr("cast(Date as string)", "Open + 1.0", "current_timestamp()").show()
+
+    // SQL from df
+    // need to create the view to use it in sql
+    df.createTempView("df")
+    spark.sql("select * from df").show()
   }
 }

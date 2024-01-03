@@ -1,6 +1,7 @@
 package com.daiyadeguchi
 
-import org.apache.spark.sql.functions.{col, current_timestamp, expr, lit, year}
+import org.apache.spark.sql.expressions.Window
+import org.apache.spark.sql.functions.{col, current_timestamp, expr, lit, row_number, year}
 import org.apache.spark.sql.types.StringType
 import org.apache.spark.sql.{DataFrame, SparkSession, functions}
 
@@ -97,9 +98,17 @@ object Main {
       .sort($"year".desc)
       .show()
 
+    // max doesn't take $ expr, so pain in the ass to alias
+//    stockData
+//      .groupBy(year($"date").as("year"))
+//      .max("close", "high")
+//      .show()
+
+    val window = Window.partitionBy(year($"date").as("year")).orderBy($"close".desc)
     stockData
-      .groupBy(year($"date").as("year"))
-      .max("close", "high")
+      .withColumn("rank", row_number().over(window))
+      .filter($"rank" === 1)
+      .sort($"close".desc)
       .show()
 
   }

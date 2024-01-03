@@ -1,6 +1,6 @@
 package com.daiyadeguchi
 
-import org.apache.spark.sql.functions.{col, current_timestamp, expr, lit}
+import org.apache.spark.sql.functions.{col, current_timestamp, expr, lit, year}
 import org.apache.spark.sql.types.StringType
 import org.apache.spark.sql.{DataFrame, SparkSession, functions}
 
@@ -19,6 +19,23 @@ object Main {
       .option("inferSchema", value = true)
       .csv("data/AAPL.csv")
 
+    // Rename each column with camelcase
+    val renameColumns = List(
+      col("Date").as("date"),
+      col("Open").as("open"),
+      col("High").as("high"),
+      col("Low").as("low"),
+      col("Close").as("close"),
+      col("Adj Close").as("adjClose"),
+      col("Volume").as("volume")
+    )
+
+    // _* -> syntax to make list to varargs
+    // withColumn creates a new column with the second parameter
+    // The assignment: add a column diff bw open and close
+    //                 filter to day when the close price was more than 10% higher than the open price
+    val stockData = df.select(renameColumns: _*)
+
     /*
     // Basic show methods
     // show() shows 20 lines or so of input file
@@ -29,6 +46,7 @@ object Main {
     df.select("Date", "Open", "Close").show()
     val column = df("Date")
     col("Date")
+    // need to import implicits for $ annotation
     import spark.implicits._
     $"Date"
 
@@ -63,29 +81,26 @@ object Main {
     // need to create the view to use it in sql
     df.createTempView("df")
     spark.sql("select * from df").show()
-    */
-
-    // Rename each column with camelcase
-    val renameColumns = List(
-      col("Date").as("date"),
-      col("Open").as("open"),
-      col("High").as("high"),
-      col("Low").as("low"),
-      col("Close").as("close"),
-      col("Adj Close").as("adjClose"),
-      col("Volume").as("volume")
-    )
-
-    // _* -> syntax to make list to varargs
-    // withColumn creates a new column with the second parameter
-    // The assignment: add a column diff bw open and close
-    //                 filter to day when the close price was more than 10% higher than the open price
-    val stockData = df.select(renameColumns: _*)
       .withColumn("diff", col("close") - col("open"))
       .filter(col("close") > col("open") * 1.1)
     stockData.show()
 
     // lowercase
     // df.select(df.columns.map(c => col(c).as(c.toLowerCase())): _*).show()
+    */
+
+    // either use agg or sorting function such as max directly for sorting
+    import spark.implicits._
+    stockData
+      .groupBy(year($"Date").as("year"))
+      .agg(functions.max($"close").as("maxClose"), functions.avg($"close").as("avgClose"))
+      .sort($"year".desc)
+      .show()
+
+    stockData
+      .groupBy(year($"date").as("year"))
+      .max("close", "high")
+      .show()
+
   }
 }

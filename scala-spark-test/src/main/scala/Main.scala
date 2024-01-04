@@ -106,6 +106,7 @@ object Main {
      */
 
     // explain(extended = true) to see Abstract Syntax Tree
+    // Spark only plan the logical plan, meaning that the action itself is triggered only when it executed (lazy)
     import spark.implicits._
     val window = Window.partitionBy(year($"date").as("year")).orderBy($"close".desc)
     stockData

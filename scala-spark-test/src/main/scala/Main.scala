@@ -88,7 +88,6 @@ object Main {
 
     // lowercase
     // df.select(df.columns.map(c => col(c).as(c.toLowerCase())): _*).show()
-    */
 
     // either use agg or sorting function such as max directly for sorting
     import spark.implicits._
@@ -104,12 +103,18 @@ object Main {
 //      .max("close", "high")
 //      .show()
 
+     */
+
+    // explain(extended = true) to see Abstract Syntax Tree
+    import spark.implicits._
     val window = Window.partitionBy(year($"date").as("year")).orderBy($"close".desc)
     stockData
       .withColumn("rank", row_number().over(window))
       .filter($"rank" === 1)
       .sort($"close".desc)
-      .show()
+      .explain(extended = true)
+
+
 
   }
 }

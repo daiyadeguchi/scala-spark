@@ -105,17 +105,22 @@ object Main {
 
      */
 
-    // explain(extended = true) to see Abstract Syntax Tree
-    // Spark only plan the logical plan, meaning that the action itself is triggered only when it executed (lazy)
-    import spark.implicits._
-    val window = Window.partitionBy(year($"date").as("year")).orderBy($"close".desc)
-    stockData
-      .withColumn("rank", row_number().over(window))
-      .filter($"rank" === 1)
-      .sort($"close".desc)
-      .explain(extended = true)
-
-
+    val prices = highestClosingPricesPerYear(stockData)
 
   }
+
+  def highestClosingPricesPerYear(df: DataFrame): DataFrame = {
+    // explain(extended = true) to see Abstract Syntax Tree
+    // Spark only plan the logical plan, meaning that the action itself is triggered only when it executed (lazy)
+    import df.sparkSession.implicits._
+    val window = Window.partitionBy(year($"date").as("year")).orderBy($"close".desc)
+    df
+      .withColumn("rank", row_number().over(window))
+      .filter($"rank" === 1)
+      .drop("rank")
+      .sort($"close".desc)
+  }
+
+  def add(x: Int, y: Int): Int = x + y
 }
+
